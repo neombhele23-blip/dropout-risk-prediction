@@ -17,6 +17,10 @@ model_training/    — data prep + Random Forest training (OULAD-based)
 backend/            — Flask API + dashboard frontend serving the trained
                       model (SQLite via Flask-SQLAlchemy, Blueprints)
                       see backend/README.md for setup and API reference
+docs/               — Dropout_Model_Build_Walkthrough.docx: a step-by-step
+                      explanation of the pipeline, mapped to the exact
+                      file/function responsible for each step — useful
+                      prep for defending the build in an oral
 ```
 
 ## Quick start
@@ -36,7 +40,8 @@ To rebuild the model from raw OULAD data instead of using the committed
 
 ```bash
 cd model_training
-python3 prepare_data.py   # requires OULAD CSVs — see script for expected paths
+mkdir -p oulad_data   # place studentInfo.csv and courses.csv from OULAD here
+python3 prepare_data.py
 python3 train_model.py
 ```
 

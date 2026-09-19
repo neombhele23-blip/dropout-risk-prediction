@@ -20,10 +20,11 @@ Features = (a) known-in-advance cohort composition stats (demographics,
               module before a new cohort's results come in).
 """
 
+import os
 import pandas as pd
 import numpy as np
 
-DATA_DIR = "/home/claude/oulad"
+DATA_DIR = os.path.join(os.path.dirname(__file__), "oulad_data")
 # Threshold is set dynamically to the dataset's own median difficulty_rate
 # (see main()) rather than a fixed guess like 0.40 — with only 22 cohorts,
 # a fixed threshold either flagged almost everything or almost nothing as
@@ -116,7 +117,7 @@ def main():
     cohort = build_cohort_table(student_info)
     full = add_historical_features(cohort, courses)
 
-    out_path = "/home/claude/dropout_model/cohort_dataset.csv"
+    out_path = os.path.join(os.path.dirname(__file__), "cohort_dataset.csv")
     full.to_csv(out_path, index=False)
 
     threshold = full.attrs.get("difficulty_threshold")

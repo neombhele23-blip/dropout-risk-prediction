@@ -12,6 +12,7 @@ production-grade accuracy — consistent with the limitation your group
 already flagged for the oral (OULAD isn't DUT's own data).
 """
 
+import os
 import joblib
 import numpy as np
 import pandas as pd
@@ -38,7 +39,7 @@ RANDOM_STATE = 42
 
 
 def load_dataset():
-    df = pd.read_csv("/home/claude/dropout_model/cohort_dataset.csv")
+    df = pd.read_csv(os.path.join(os.path.dirname(__file__), "cohort_dataset.csv"))
     # Drop cohorts with no history yet — no historical features to predict from.
     usable = df.dropna(subset=["hist_avg_difficulty"]).reset_index(drop=True)
     return usable
@@ -89,7 +90,7 @@ def train_and_evaluate(df: pd.DataFrame):
     importances = pd.Series(clf.feature_importances_, index=FEATURE_COLS).sort_values(ascending=False)
     print(importances.to_string())
 
-    model_path = "/home/claude/dropout_model/dropout_risk_model.joblib"
+    model_path = os.path.join(os.path.dirname(__file__), "dropout_risk_model.joblib")
     joblib.dump({"model": clf, "feature_cols": FEATURE_COLS}, model_path)
     print(f"\nSaved trained model to {model_path}")
 

@@ -9,3 +9,4 @@ backend/instance/
 .DS_Store
 *.log
 node_modules/
+model_training/oulad_data/
