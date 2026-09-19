@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Module Risk Monitor — RESK401</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="mark">
+      <span class="mark-glyph">◆</span>
+      <div class="mark-text">
+        <h1>Module Risk Monitor</h1>
+        <p>Historical difficulty tracking &amp; early-intervention flags</p>
+      </div>
+    </div>
+    <button id="refresh-btn" class="btn btn-ghost" type="button">Refresh data</button>
+  </div>
+</header>
+
+<main class="layout">
+
+  <section class="hero" aria-label="Overview">
+    <div class="hero-stat hero-stat--primary">
+      <span class="hero-stat-value" id="stat-flagged">—</span>
+      <span class="hero-stat-label">modules currently flagged</span>
+    </div>
+    <div class="hero-stat">
+      <span class="hero-stat-value" id="stat-total">—</span>
+      <span class="hero-stat-label">modules tracked</span>
+    </div>
+    <div class="hero-stat">
+      <span class="hero-stat-value" id="stat-cohorts">—</span>
+      <span class="hero-stat-label">historical cohorts</span>
+    </div>
+    <p class="hero-note">
+      A module is <strong>flagged</strong> when its predicted probability of persistent
+      difficulty is 0.5 or higher, based on senior cohorts' historical pass/fail/withdrawal
+      patterns — not any individual student's data.
+    </p>
+  </section>
+
+  <section class="panel" aria-labelledby="modules-heading">
+    <div class="panel-head">
+      <h2 id="modules-heading">Modules</h2>
+      <span class="panel-hint">Click a module to see its cohort history</span>
+    </div>
+    <div class="table-wrap">
+      <table id="modules-table">
+        <thead>
+          <tr>
+            <th scope="col">Module</th>
+            <th scope="col">Cohorts</th>
+            <th scope="col">Latest presentation</th>
+            <th scope="col">Latest difficulty rate</th>
+            <th scope="col">Status</th>
+            <th scope="col"></th>
+          </tr>
+        </thead>
+        <tbody id="modules-tbody">
+          <tr><td colspan="6" class="empty-row">Loading modules…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel" id="detail-panel" aria-labelledby="detail-heading" hidden>
+    <div class="panel-head">
+      <h2 id="detail-heading">Cohort history — <span id="detail-module-code"></span></h2>
+      <button id="close-detail" class="btn btn-text" type="button">Close</button>
+    </div>
+    <div id="detail-sparkline" class="sparkline" aria-hidden="true"></div>
+    <div class="table-wrap">
+      <table id="detail-table">
+        <thead>
+          <tr>
+            <th scope="col">Presentation</th>
+            <th scope="col">Enrolled</th>
+            <th scope="col">Difficulty rate</th>
+            <th scope="col">Prior cohorts used</th>
+            <th scope="col">Ground truth</th>
+          </tr>
+        </thead>
+        <tbody id="detail-tbody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="flagged-heading">
+    <div class="panel-head">
+      <h2 id="flagged-heading">Flagged for intervention</h2>
+      <span class="panel-hint">Most recent prediction per module, sorted by risk</span>
+    </div>
+    <ul id="flagged-list" class="flagged-list">
+      <li class="empty-row">No predictions logged yet — run a prediction from the table above.</li>
+    </ul>
+  </section>
+
+</main>
+
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+</html>
