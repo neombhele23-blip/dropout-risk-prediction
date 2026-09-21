@@ -10,3 +10,4 @@ backend/instance/
 *.log
 node_modules/
 model_training/oulad_data/
+*.joblib
