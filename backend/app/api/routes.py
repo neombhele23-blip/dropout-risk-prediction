@@ -1,4 +1,6 @@
-from flask import Blueprint, jsonify, request
+import json
+import os
+from flask import Blueprint, jsonify, request, current_app
 from app.extensions import db
 from app.models import Cohort, Prediction
 from app.ml import model_service
@@ -104,6 +106,7 @@ def predict():
         }
 
     label, probability = model_service.predict(features)
+    explanation = model_service.explain(features)
 
     record = Prediction(
         code_module=code_module,
@@ -122,7 +125,33 @@ def predict():
         "predicted_difficult": bool(label),
         "predicted_probability": round(probability, 4),
         "features_used": features,
+        "explanation": explanation,
         "prediction_id": record.id,
+    })
+
+
+@api_bp.get("/model-info")
+def model_info():
+    """Model transparency endpoint: global feature importances, and how the
+    Random Forest compares to a simple historical-persistence baseline.
+    Powers a 'why should I trust this' panel on the dashboard rather than
+    presenting the model as a black box."""
+    importances = model_service.feature_importances()
+    ranked_importances = sorted(importances.items(), key=lambda kv: kv[1], reverse=True)
+
+    comparison_path = os.path.join(
+        os.path.dirname(current_app.config["MODEL_PATH"]), "..", "..", "..",
+        "model_training", "baseline_comparison.json"
+    )
+    comparison_path = os.path.normpath(comparison_path)
+    baseline_comparison = None
+    if os.path.exists(comparison_path):
+        with open(comparison_path) as f:
+            baseline_comparison = json.load(f)
+
+    return jsonify({
+        "feature_importances": [{"feature": f, "importance": round(v, 4)} for f, v in ranked_importances],
+        "baseline_comparison": baseline_comparison,
     })
 
 
@@ -139,10 +168,12 @@ def flagged():
         if p.code_module not in latest_per_module:
             latest_per_module[p.code_module] = p
 
-    result = [
-        p.to_dict() for p in latest_per_module.values()
-        if p.predicted_label == 1 and p.predicted_probability >= min_probability
-    ]
+    result = []
+    for p in latest_per_module.values():
+        if p.predicted_label == 1 and p.predicted_probability >= min_probability:
+            d = p.to_dict()
+            d["explanation"] = model_service.explain(p.input_features or {})
+            result.append(d)
     result.sort(key=lambda r: r["predicted_probability"], reverse=True)
     return jsonify(result)
 

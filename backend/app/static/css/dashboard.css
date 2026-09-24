@@ -248,6 +248,7 @@ tbody tr.clickable:hover { background: #F7F8F4; }
 }
 .flagged-item:last-child { border-bottom: none; }
 
+.flagged-main-wrap { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 0; }
 .flagged-main { display: flex; align-items: baseline; gap: 12px; }
 .flagged-code { font-family: var(--serif); font-weight: 600; font-size: 1.05rem; }
 .flagged-meta { font-size: 0.8rem; color: var(--ink-soft); }
@@ -256,7 +257,56 @@ tbody tr.clickable:hover { background: #F7F8F4; }
   font-variant-numeric: tabular-nums;
   font-weight: 600;
   color: var(--risk);
+  white-space: nowrap;
 }
+
+/* ---------- Why flagged ---------- */
+
+.flagged-why { font-size: 0.8rem; color: var(--ink-soft); }
+.flagged-why-label { font-weight: 500; color: var(--navy); }
+.flagged-why ul { margin: 4px 0 0; padding-left: 18px; }
+.flagged-why li { margin-bottom: 2px; }
+
+/* ---------- Model info panel ---------- */
+
+.model-info-section { margin-bottom: 20px; }
+.model-info-section h3 {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--navy);
+  margin: 0 0 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.importance-row {
+  display: grid;
+  grid-template-columns: 160px 1fr 50px;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 0;
+  font-size: 0.85rem;
+}
+.importance-label { text-transform: capitalize; color: var(--ink-soft); }
+.importance-bar { height: 8px; background: var(--line); border-radius: 999px; overflow: hidden; }
+.importance-bar-fill { height: 100%; background: var(--navy); border-radius: 999px; }
+.importance-value { text-align: right; font-variant-numeric: tabular-nums; color: var(--ink-soft); }
+
+.model-baseline-note { font-size: 0.85rem; color: var(--ink-soft); margin: 0 0 12px; line-height: 1.5; }
+.model-baseline-caveat { font-style: italic; margin-top: 12px; }
+
+.baseline-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+.baseline-table th, .baseline-table td {
+  padding: 8px 10px;
+  text-align: right;
+  border-bottom: 1px solid var(--line);
+}
+.baseline-table th:first-child, .baseline-table td:first-child { text-align: left; color: var(--ink-soft); }
+.baseline-table th { font-weight: 500; color: var(--navy); }
 
 /* ---------- Toast ---------- */
 

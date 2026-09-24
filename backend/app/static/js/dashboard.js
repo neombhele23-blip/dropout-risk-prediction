@@ -6,6 +6,7 @@ const detailTbody = document.getElementById("detail-tbody");
 const detailModuleCode = document.getElementById("detail-module-code");
 const detailSparkline = document.getElementById("detail-sparkline");
 const flaggedList = document.getElementById("flagged-list");
+const modelInfoBody = document.getElementById("model-info-body");
 const statFlagged = document.getElementById("stat-flagged");
 const statTotal = document.getElementById("stat-total");
 const statCohorts = document.getElementById("stat-cohorts");
@@ -181,6 +182,15 @@ document.getElementById("close-detail").addEventListener("click", () => {
   detailPanel.hidden = true;
 });
 
+function explanationHtml(explanation) {
+  if (!explanation || explanation.length === 0) return "";
+  const items = explanation.map((e) => {
+    const label = e.feature.replace(/_/g, " ");
+    return `<li><strong>${label}</strong> is ${e.direction} typical (${e.value} vs. ${e.typical_value} usual)</li>`;
+  }).join("");
+  return `<div class="flagged-why"><span class="flagged-why-label">Why flagged — top factors:</span><ul>${items}</ul></div>`;
+}
+
 async function loadFlagged() {
   try {
     const preds = await apiGet("/flagged");
@@ -190,15 +200,72 @@ async function loadFlagged() {
     }
     flaggedList.innerHTML = preds.map((p) => `
       <li class="flagged-item">
-        <div class="flagged-main">
-          <span class="flagged-code">${p.code_module}</span>
-          <span class="flagged-meta">${p.code_presentation || "—"} · scored ${new Date(p.created_at).toLocaleString()}</span>
+        <div class="flagged-main-wrap">
+          <div class="flagged-main">
+            <span class="flagged-code">${p.code_module}</span>
+            <span class="flagged-meta">${p.code_presentation || "—"} · scored ${new Date(p.created_at).toLocaleString()}</span>
+          </div>
+          ${explanationHtml(p.explanation)}
         </div>
         <span class="flagged-prob">${pct(p.predicted_probability)}</span>
       </li>
     `).join("");
   } catch (err) {
     flaggedList.innerHTML = `<li class="empty-row">Couldn't load flagged modules: ${err.message}</li>`;
+  }
+}
+
+async function loadModelInfo() {
+  try {
+    const info = await apiGet("/model-info");
+    const importances = info.feature_importances || [];
+    const bc = info.baseline_comparison;
+
+    const importanceRows = importances.slice(0, 6).map((f) => {
+      const widthPct = Math.max(2, f.importance * 100 * 3); // scaled for visibility
+      return `
+        <div class="importance-row">
+          <span class="importance-label">${f.feature.replace(/_/g, " ")}</span>
+          <div class="importance-bar"><div class="importance-bar-fill" style="width:${Math.min(100, widthPct)}%"></div></div>
+          <span class="importance-value">${(f.importance * 100).toFixed(1)}%</span>
+        </div>`;
+    }).join("");
+
+    let baselineHtml = "";
+    if (bc) {
+      const m = bc.random_forest_cv_metrics;
+      const b = bc.baseline_metrics_full_fit;
+      baselineHtml = `
+        <div class="model-baseline">
+          <p class="model-baseline-note">
+            Compared against a simple baseline (<em>"assume the next presentation repeats the last one's difficulty"</em>),
+            evaluated on ${bc.n_usable_rows} historical module-cohorts:
+          </p>
+          <table class="baseline-table">
+            <thead><tr><th></th><th>Baseline</th><th>Random Forest (held-out)</th></tr></thead>
+            <tbody>
+              <tr><td>Accuracy</td><td>${pct(b.accuracy)}</td><td>${pct(m.accuracy)}</td></tr>
+              <tr><td>Precision</td><td>${pct(b.precision)}</td><td>${pct(m.precision)}</td></tr>
+              <tr><td>Recall</td><td>${pct(b.recall)}</td><td>${pct(m.recall)}</td></tr>
+              <tr><td>F1</td><td>${pct(b.f1)}</td><td>${pct(m.f1)}</td></tr>
+            </tbody>
+          </table>
+          <p class="model-baseline-note model-baseline-caveat">
+            With only ${bc.n_usable_rows} historical rows, these figures are preliminary — read as a proof-of-concept
+            comparison, not a guarantee of real-world performance.
+          </p>
+        </div>`;
+    }
+
+    modelInfoBody.innerHTML = `
+      <div class="model-info-section">
+        <h3>What the model relies on most</h3>
+        ${importanceRows || `<p class="empty-row">No importance data available.</p>`}
+      </div>
+      ${baselineHtml}
+    `;
+  } catch (err) {
+    modelInfoBody.innerHTML = `<p class="empty-row">Couldn't load model info: ${err.message}</p>`;
   }
 }
 
@@ -209,3 +276,4 @@ document.getElementById("refresh-btn").addEventListener("click", () => {
 
 loadModules();
 loadFlagged();
+loadModelInfo();
