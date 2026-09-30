@@ -80,7 +80,6 @@ a module with no cohort history yet):
     "avg_prev_attempts": 0.2,
     "avg_imd": 45,
     "disability_rate": 0.1,
-    "distinction_rate": 0.08,
     "module_presentation_length": 260,
     "hist_avg_difficulty": 0.53,
     "hist_last_difficulty": 0.50,

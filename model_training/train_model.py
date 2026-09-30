@@ -27,7 +27,6 @@ FEATURE_COLS = [
     "avg_prev_attempts",
     "avg_imd",
     "disability_rate",
-    "distinction_rate",
     "module_presentation_length",
     "hist_avg_difficulty",
     "hist_last_difficulty",
