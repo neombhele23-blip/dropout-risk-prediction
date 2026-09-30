@@ -58,16 +58,29 @@ def explain(features: dict, top_n: int = 3):
     return explanation
 
 
+def has_history(features: dict) -> bool:
+    """A module presentation can only be scored if it has at least one
+    earlier presentation to draw historical features from."""
+    n_prior = features.get("hist_n_prior_cohorts")
+    return bool(n_prior) and features.get("hist_last_difficulty") is not None
+
+
 def predict(features: dict):
-    """features: dict of {feature_name: value}. Missing keys are filled
-    with 0.0 — acceptable here since the model's own median-imputation
-    happened at training time on the historical dataset; callers should
-    still supply hist_* fields whenever a module has prior cohorts."""
+    """features: dict of {feature_name: value}. Any feature the caller
+    leaves out is filled with its training-set median (stored in the
+    model bundle), NOT 0.0 -- a 0.0 for e.g. hist_avg_difficulty would be
+    far outside anything seen in training and produce a confident but
+    meaningless 'not difficult'. Callers must check has_history() first;
+    modules with no prior presentations are not scored at all."""
     bundle = _load()
     cols = bundle["feature_cols"]
     model = bundle["model"]
+    medians = bundle.get("feature_medians", {})
 
-    row = {col: features.get(col, 0.0) for col in cols}
+    row = {}
+    for col in cols:
+        value = features.get(col)
+        row[col] = medians.get(col, 0.0) if value is None else value
     X = pd.DataFrame([row], columns=cols)
 
     label = int(model.predict(X)[0])

@@ -85,13 +85,15 @@ def predict():
 
         # Use the latest cohort's own stats as this-cohort's "known in
         # advance" composition guess, and roll its outcome into history.
+        # Outcome-derived columns (difficulty_rate, distinction_rate) must
+        # never enter features directly -- difficulty_rate only appears
+        # here as HISTORY for the next presentation.
         features = {
             "enrollment_count": latest.enrollment_count,
             "avg_studied_credits": latest.avg_studied_credits,
             "avg_prev_attempts": latest.avg_prev_attempts,
             "avg_imd": latest.avg_imd,
             "disability_rate": latest.disability_rate,
-            "distinction_rate": latest.distinction_rate,
             "module_presentation_length": latest.module_presentation_length,
             "hist_avg_difficulty": (
                 ((latest.hist_avg_difficulty or 0) * (latest.hist_n_prior_cohorts or 0) + latest.difficulty_rate)
@@ -104,6 +106,15 @@ def predict():
                 / ((latest.hist_n_prior_cohorts or 0) + 1)
             ),
         }
+
+    if not model_service.has_history(features):
+        return jsonify({
+            "code_module": code_module,
+            "code_presentation": code_presentation,
+            "status": "unscored",
+            "reason": "This module has no earlier presentations, so there is no "
+                      "history to base a prediction on. It cannot be scored yet.",
+        }), 422
 
     label, probability = model_service.predict(features)
     explanation = model_service.explain(features)
